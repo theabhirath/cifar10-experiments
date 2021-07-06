@@ -14,6 +14,8 @@ I trained the model for 50 epochs with a batch size of 256. The optimizer used w
 
 I built a deep ConvNet inspired by the [ResNet architecture](https://arxiv.org/abs/1512.03385) for the purpose of image classification. The architecture is hybrid, with the first three layers based on a vanilla residual block structure and the subsequent based on bottleneck residual blocks as described in the original paper. A 5 x 5 convolutional block is used to feed the image into the main network, and global average pooling is used at the end instead of a fully connected network and fed into a softmax. Dropout of probability 0.05 is used intermittently. 
 
+Data augmentation is used as in the original paper - random crops of size 32 with a padding of 4, normalizing pixels with per channel mean values and random horizontal flips.
+
 The network was trained for 200 epochs with Adam, with a batch size of 128 and a learning rate of 0.003. Weight decay of 0.0001 was implemented. The learning rate was also reduced by a factor of 10 thrice, at 100, 150 and 175 epochs respectively. I achieved a good train accuracy of 96.824% and a train accuracy of 88.9%, despite having just 356,234 parameters as opposed to the VGG model's 9,985,034.
 
 # Vision
