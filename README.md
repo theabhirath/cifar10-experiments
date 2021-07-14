@@ -18,7 +18,7 @@ Data augmentation is used as in the original paper - random crops of size 32 wit
 
 The network was trained for 100 epochs with Adam, with a batch size of 128 and a learning rate of 0.003. Weight decay of 0.1 was implemented. The learning rate was also reduced by a factor of 10 twice, at 50 and 75 epochs respectively. I achieved a good train accuracy of 96.266% and a train accuracy of 89.33%, despite having just 266,122 parameters as opposed to the VGG model's 9,985,034.
 
-# Vision
+# NLP
 
 ## Character-level RNN
 
