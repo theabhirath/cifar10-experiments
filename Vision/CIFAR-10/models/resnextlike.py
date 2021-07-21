@@ -22,8 +22,8 @@ class ResNeXtBlock(nn.Module):
         input = x
         x = F.relu(self.bn1(self.conv1(x)))
         x = F.relu(self.bn2(self.conv2(x)))
-        x = self.bn3(self.conv3(x))
-        x = F.relu(x + self.conv4(input))
+        x = self.conv3(x)
+        x = F.relu(self.bn3(x + self.conv4(input)))
         return x
 
 class resnextlike(nn.Module):
@@ -33,9 +33,11 @@ class resnextlike(nn.Module):
         self.conv1 = nn.Conv2d(3, 64, 5, padding = 2)
         self.bn1 = nn.BatchNorm2d(64)
         self.block1 = ResNeXtBlock(64, 128, 3, 2, cardinality)
+        self.block2 = ResNeXtBlock(128, 128, 3, 1, cardinality)
         self.block3 = ResNeXtBlock(128, 256, 3, 2, cardinality)
-        self.block3 = ResNeXtBlock(256, 512, 3, 2, cardinality)
-        self.block4 = ResNeXtBlock(512, 1024, 3, 2, cardinality)
+        self.block4 = ResNeXtBlock(256, 256, 3, 1, cardinality)
+        self.block5 = ResNeXtBlock(256, 512, 3, 2, cardinality)
+        self.block6 = ResNeXtBlock(512, 1024, 3, 2, cardinality)
         self.gap = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(1024, 10)
 
@@ -45,6 +47,8 @@ class resnextlike(nn.Module):
         x = self.block2(x)
         x = self.block3(x)
         x = self.block4(x)
+        x = self.block5(x)
+        x = self.block6(x)
         x = self.gap(x)
         x = x.view(x.size(0), -1)
         x = self.fc(x)

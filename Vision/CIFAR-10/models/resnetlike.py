@@ -18,44 +18,9 @@ class AutoConv2d_BN(nn.Module):
         return x
 
 class VanillaResBlock(nn.Module):
-    """simple residual block with 2 `AutoConv2d_BN` layers and a shortcut mapping."""
-    def __init__(self, input_channels, output_channels, kernel_size):
-        super(VanillaResBlock, self).__init__()
-        self.conv1 = AutoConv2d_BN(input_channels, output_channels, 
-                                  kernel_size = kernel_size)
-        self.conv2 = AutoConv2d_BN(input_channels, output_channels, 
-                                  kernel_size = kernel_size)
-
-    def forward(self, x):
-        input = x
-        x = F.relu(self.conv1(x))
-        x = self.conv2(x)
-        x = F.relu(x + input)
-        return x
-
-class BottleneckResBlock(nn.Module):
-    """bottleneck residual block to reduce compute in the deeper layers."""
-    def __init__(self, input_channels, bottleneck_channels, output_channels, kernel_size):
-        super(BottleneckResBlock, self).__init__()
-        self.conv1 = AutoConv2d_BN(input_channels, bottleneck_channels, 
-                                   kernel_size = 1)
-        self.conv2 = AutoConv2d_BN(bottleneck_channels, bottleneck_channels, 
-                                   kernel_size = kernel_size)
-        self.conv3 = AutoConv2d_BN(bottleneck_channels, output_channels, 
-                                   kernel_size = 1)
-
-    def forward(self, x):
-        input = x
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-        x = self.conv3(x)
-        x = F.relu(x + input)
-        return x
-
-class DownsampleResBlock(nn.Module):
     """simple residual block with downsampling of input."""
-    def __init__(self, input_channels, output_channels, kernel_size, down_stride):
-        super(DownsampleResBlock, self).__init__()
+    def __init__(self, input_channels, output_channels, kernel_size, down_stride = 1):
+        super(VanillaResBlock, self).__init__()
         self.conv1 = AutoConv2d_BN(input_channels, output_channels, 
                                    kernel_size = kernel_size, stride = down_stride)
         self.conv2 = AutoConv2d_BN(output_channels, output_channels, 
@@ -70,10 +35,11 @@ class DownsampleResBlock(nn.Module):
         x = F.relu(x + self.conv3(input))
         return x
 
-class DownbottleResBlock(nn.Module):
+class BottleneckResBlock(nn.Module):
     """bottleneck block that downsamples input."""
-    def __init__(self, input_channels, bottleneck_channels , output_channels, kernel_size, down_stride):
-        super(DownbottleResBlock, self).__init__()
+    def __init__(self, input_channels, output_channels, kernel_size, bottleneck_channels = None, down_stride = 1):
+        bottleneck_channels = output_channels // 4 if bottleneck_channels is None else bottleneck_channels
+        super(BottleneckResBlock, self).__init__()
         self.conv1 = AutoConv2d_BN(input_channels, bottleneck_channels, 
                                    kernel_size = 1)
         self.conv2 = AutoConv2d_BN(bottleneck_channels, bottleneck_channels, 
@@ -99,13 +65,13 @@ class resnetlike(nn.Module):
         self.bn1 = nn.BatchNorm2d(32)
         self.block1 = VanillaResBlock(32, 32, 3)
         self.block2 = VanillaResBlock(32, 32, 3)
-        self.block3 = DownsampleResBlock(32, 64, 3, 2)
-        self.block4 = BottleneckResBlock(64, 16, 64, 3)
-        self.block5 = BottleneckResBlock(64, 16, 64, 3)
-        self.block6 = DownbottleResBlock(64, 32, 128, 3, 2)
-        self.block7 = BottleneckResBlock(128, 32, 128, 3)
-        self.block8 = BottleneckResBlock(128, 32, 128, 3)
-        self.block9 = DownbottleResBlock(128, 64, 256, 3, 2)
+        self.block3 = VanillaResBlock(32, 64, 3, down_stride = 2)
+        self.block4 = BottleneckResBlock(64, 64, 3)
+        self.block5 = BottleneckResBlock(64, 64, 3)
+        self.block6 = BottleneckResBlock(64, 128, 3, down_stride = 2)
+        self.block7 = BottleneckResBlock(128, 128, 3)
+        self.block8 = BottleneckResBlock(128, 128, 3)
+        self.block9 = BottleneckResBlock(128, 256, 3, down_stride = 2)
         self.gap = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(256, 10)
 
