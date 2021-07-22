@@ -37,7 +37,8 @@ class VanillaResBlock(nn.Module):
 
 class BottleneckResBlock(nn.Module):
     """bottleneck block that downsamples input."""
-    def __init__(self, input_channels, output_channels, kernel_size, bottleneck_channels = None, down_stride = 1):
+    def __init__(self, input_channels, output_channels, kernel_size, 
+                    bottleneck_channels = None, down_stride = 1):
         bottleneck_channels = output_channels // 4 if bottleneck_channels is None else bottleneck_channels
         super(BottleneckResBlock, self).__init__()
         self.conv1 = AutoConv2d_BN(input_channels, bottleneck_channels, 
