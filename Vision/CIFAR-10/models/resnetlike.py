@@ -19,7 +19,7 @@ class AutoConv2d_BN(nn.Module):
 
 class VanillaResBlock(nn.Module):
     """simple residual block with downsampling of input."""
-    def __init__(self, input_channels, output_channels, kernel_size, down_stride = 1):
+    def __init__(self, input_channels, output_channels, kernel_size = 3, down_stride = 1):
         super(VanillaResBlock, self).__init__()
         self.conv1 = AutoConv2d_BN(input_channels, output_channels, 
                                    kernel_size = kernel_size, stride = down_stride)
@@ -37,7 +37,7 @@ class VanillaResBlock(nn.Module):
 
 class BottleneckResBlock(nn.Module):
     """bottleneck block that downsamples input."""
-    def __init__(self, input_channels, output_channels, kernel_size, 
+    def __init__(self, input_channels, output_channels, kernel_size = 3, 
                     bottleneck_channels = None, down_stride = 1):
         bottleneck_channels = output_channels // 4 if bottleneck_channels is None else bottleneck_channels
         super(BottleneckResBlock, self).__init__()
@@ -64,15 +64,15 @@ class resnetlike(nn.Module):
         super().__init__()
         self.conv1 = nn.Conv2d(3, 32, 5, padding = 2)
         self.bn1 = nn.BatchNorm2d(32)
-        self.block1 = VanillaResBlock(32, 32, 3)
-        self.block2 = VanillaResBlock(32, 32, 3)
-        self.block3 = VanillaResBlock(32, 64, 3, down_stride = 2)
-        self.block4 = BottleneckResBlock(64, 64, 3)
-        self.block5 = BottleneckResBlock(64, 64, 3)
-        self.block6 = BottleneckResBlock(64, 128, 3, down_stride = 2)
-        self.block7 = BottleneckResBlock(128, 128, 3)
-        self.block8 = BottleneckResBlock(128, 128, 3)
-        self.block9 = BottleneckResBlock(128, 256, 3, down_stride = 2)
+        self.block1 = VanillaResBlock(32, 32)
+        self.block2 = VanillaResBlock(32, 32)
+        self.block3 = VanillaResBlock(32, 64, down_stride = 2)
+        self.block4 = BottleneckResBlock(64, 64)
+        self.block5 = BottleneckResBlock(64, 64)
+        self.block6 = BottleneckResBlock(64, 128, down_stride = 2)
+        self.block7 = BottleneckResBlock(128, 128)
+        self.block8 = BottleneckResBlock(128, 128)
+        self.block9 = BottleneckResBlock(128, 256, down_stride = 2)
         self.gap = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(256, 10)
 
