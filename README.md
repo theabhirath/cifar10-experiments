@@ -42,10 +42,3 @@ I built a deep ConvNet inspired by the [DenseNet architecture](https://arxiv.org
 Due to feature map reuse, this network takes much fewer parameters to return competitive results, although it requires a large amount of compute. For example, even with just a 4-chunk network with a growth rate of 12 (508,447 parameters, 16.30 GMACs), I achieve a validation accuracy of 93.62% and a test accuracy of **92.8%**. With a slightly larger network (5 chunks, growth rate of 16 with computation worth 1,098,724 params and 28.75 GMACs), the accuracy is boosted to 94.04% on the validation set and **93.09%** on the test set. 
 
 Both the models use a compression factor of 0.5 in the transition blocks and were trained for 100 epochs with a batch size of 128. The optimizer used was AdamW with learning rate of 3e-3 and weight decay of 0.1. The learning rate was reduced by a factor of 10 twice, once after 50 epochs and once after 75 epochs.
-
-# NLP
-
-## Character-level RNN
-
-I built a character-level RNN based on the [PyTorch tutorial](https://pytorch.org/tutorials/intermediate/char_rnn_classification_tutorial.html) to classify last names by nationality.
-
