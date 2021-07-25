@@ -14,34 +14,57 @@ class AutoConv2d_BN(nn.Module):
         self.bn = nn.BatchNorm2d(output_channels)
     
     def forward(self, x):
-        x = self.bn(F.relu(self.conv(x)))
+        x = F.relu(self.bn(self.conv(x)))
         return x
 
 class vggblock(nn.Module):
-    """returns one block of a VGG-like neural network."""
+    """block of a VGG-like neural network."""
     def __init__(self, in_channels, kernel_size = 3, drop_rate = 0.2, num_layers = 2,
                     expansion = 2, pool_size = 2):
         super(vggblock, self).__init__()
         out_channels = in_channels * expansion
-        self.convs = nn.ModuleList([AutoConv2d_BN(in_channels, in_channels, kernel_size)] 
-                                    * (num_layers - 1))
+        self.convs = nn.ModuleList([AutoConv2d_BN(in_channels, in_channels, kernel_size) for 
+                                            _ in range(num_layers - 1)])
         self.convf = AutoConv2d_BN(in_channels, out_channels, kernel_size)
         self.pool = nn.MaxPool2d(pool_size)
         self.drop = nn.Dropout2d(drop_rate)
 
     def forward(self, x):
-        for _, conv in enumerate(self.convs):
+        for conv in self.convs:
             x = self.drop(conv(x))
         x = self.convf(x)
         x = self.pool(x)
         return x
 
 class vgglike(nn.Module):
-    """returns VGG-like neural network architecture."""
-    def __init__(self, image_size = (3, 32, 32), in_channels = 32, 
-                    kernel_size = 3, num_blocks = 3, drop_rate = 0.2, num_layers = 2, 
-                    expansion = 2, pool_size = 2, num_classes = 10):
+    """
+    neural network architecture based on VGG-Net.
+
+    inputs:
+
+    1. `image_size`: size of input image (assumed to be three-dimensional of type (C, H, W) 
+    where C is channels, H is height, and W is width). Default value is (3, 32, 32).
+    2. `in_channels`: number of channels the image is upsampled to before feeding into the main
+    network. (assumed to be an integer equal to or larger than `image_size[0]`). Default value 
+    is 32.
+    3. `kernel_size`: size of convolutional kernels throughout the network. Default value is 3.
+    4. `expansion`: factor by which the channel size is upsampled at each chunk of the network. 
+    Default value is 2.
+    5. `pool_size`: size of pooling windows across the image in each block. Usually equal to 
+    `expansion`.
+    6. `drop_rate`: dropout rate for all intermittent layers in the network - this is 
+    2D dropout for the convolutional blocks i.e. entire channel values are zeroed and regular 
+    dropout for the fully connected layer. Default value is 0.2.
+    7. `num_blocks`: number of blocks, each of which has `num_layers` convolutional layers. 
+    Default value is 2.
+    8. `num_layers`: number of layers in each block in the network. Default value is 2.
+    9. `num_classes`: number of classes to predict. Default value is 10.
+    """
+    def __init__(self, image_size = (3, 32, 32), in_channels = 32, kernel_size = 3, 
+                    expansion = 2, pool_size = None, drop_rate = 0.2, num_blocks = 3, 
+                    num_layers = 2, num_classes = 10):
         super(vgglike, self).__init__()
+        pool_size = expansion if pool_size is None else pool_size
         self.conv1 = nn.Conv2d(image_size[0], in_channels, 5, padding = 2)
         self.bn1 = nn.BatchNorm2d(in_channels)
         self.blocks = nn.ModuleList([vggblock(in_channels * (expansion ** i), 
